@@ -1,0 +1,126 @@
+---
+
+```
+
+## R Markdown
+```{r}
+library(tidyverse)
+data <- read.csv("atp_matches_2024_no_RET.csv")
+
+
+
+#creating new variables#
+
+new_data <- data %>%
+  mutate("W_ace_serve" = w_ace/w_svpt,
+         "W_df_serve" = w_df/w_svpt,
+         "w_1sv_percent" = w_1stIn/w_svpt,
+         "W_1sv_w_percent" = w_1stWon/w_1stIn,
+         "w_2sv_percent" = (w_svpt - w_1stIn - w_df)/(w_svpt - w_1stIn),
+         "w_2sv_w_percent" = w_2ndWon/(w_svpt - w_1stIn),
+         "L_ace_serve" = l_ace/l_svpt,
+         "L_df_serve" = l_df/l_svpt,
+         "L_1sv_percent" = l_1stIn/l_svpt,
+         "L_1sv_w_percent" = l_1stWon/l_1stIn,
+         "L_2sv_percent" = (l_svpt - l_1stIn - l_df)/(l_svpt - l_1stIn),
+         "L_2sv_w_percent" = l_2ndWon/(l_svpt - l_1stIn),
+         ) %>%
+  select( 
+         W_ace_serve,
+         W_df_serve,
+         w_1sv_percent,
+         W_1sv_w_percent,
+         w_2sv_percent,
+         w_2sv_w_percent,
+         L_ace_serve,
+         L_df_serve,
+         L_1sv_percent,
+         L_1sv_w_percent,
+         L_2sv_percent,
+         L_2sv_w_percent)
+  
+
+#seperating winners an losers stats#
+
+  s_new_data <- new_data %>%
+    pivot_longer(
+    cols = matches("^[wl]_"),            
+    names_to = c("player_type", ".value"), 
+    names_pattern = "^([wl])_(.*)"
+    )
+  
+  
+  ##creating winners data##
+  winners <- new_data %>%
+  select(starts_with("w_"), starts_with("W_")) %>%
+  mutate(player_type = "Winner") %>%
+  rename_with(~ str_remove(., "^[wW]_")) 
+
+##creating losers data##
+losers <- new_data %>%
+  select(starts_with("L_"), starts_with("l_")) %>%
+  mutate(player_type = "Loser") %>%
+  rename_with(~ str_remove(., "^[lL]_")) 
+
+#join both data sets##
+long_data <- bind_rows(winners, losers) %>%
+  drop_na()
+
+
+
+
+ggplot(long_data, aes(x = "player_type", y = `1sv_w_percent`, fill = player_type)) +
+  # 1. Add the boxplot first (the "background"
+  # 2. Add the individual points on top
+  geom_jitter(aes(color = player_type), width = 0.2, alpha = 0.4) + 
+  geom_boxplot()
+  
+
+
+
+
+ggplot(long_data, aes(x = player_type, y = `1sv_w_percent`, fill = player_type)) +
+  # 1. Add the boxplot first (the "background")
+  geom_boxplot(outlier.shape = NA, alpha = 0.5) + 
+  
+  # 2. Add the individual points on top
+  geom_jitter(aes(color = player_type), width = 0.2, alpha = 0.4) +
+  
+  # 3. Clean up labels and colors
+  scale_fill_manual(values = c("Loser" = "#ef476f", "Winner" = "#06d6a0"), 
+                    labels = c("Loser", "Winner")) +
+  scale_color_manual(values = c("Loser" = "#ef476f", "Winner" = "#06d6a0"), 
+                     labels = c("Loser", "Winner")) +
+  labs(title = "1st Serve Win Percentage by Player Type",
+       x = "Player Outcome",
+       y = "1st Serve Win %",
+       fill = "Outcome",
+       color = "Outcome") +
+  theme_minimal()
+
+
+
+#ploting serve percent#
+
+ggplot(long_data, aes(player_type, `1sv_percent`, fill = player_type)) + 
+  geom_boxplot(outlier.shape = NA, alpha = 0.5) + 
+  geom_jitter(aes(colour = player_type), width = 0.2, alpha = 0.4) + 
+   scale_fill_manual(values = c("Loser" = "#ef476f", "Winner" = "#06d6a0"), 
+                    labels = c("Loser", "Winner")) +
+  scale_color_manual(values = c("Loser" = "#ef476f", "Winner" = "#06d6a0"), 
+                     labels = c("Loser", "Winner")) +
+  labs(title = "1st Serve Percentage by Player Type",
+       x = "Player Outcome",
+       y = "1st Serve %",
+       fill = "Outcome",
+       color = "Outcome") +
+  theme_minimal()
+
+ggsave("1sv.pdf")
+
+
+
+
+
+```
+

@@ -1,0 +1,46 @@
+```{r}
+##checking distribition using histograms##
+
+library(ggplot2)
+
+is.numeric(long_data$'1sv_percent')
+
+ggplot(long_data, aes(x = `1sv_w_percent`, fill = player_type)) + 
+  geom_histogram(bins = 100, color = "white", position = "stack") +
+  theme_minimal()
+
+
+
+ggplot(long_data, aes(x = `2sv_w_percent`, fill = player_type)) + 
+  geom_histogram(bins = 100, color = "white") +
+  theme_minimal()
+
+
+ggplot(long_data, aes(x = `1sv_percent`, fill = player_type)) + 
+  geom_histogram(bins = 100, color = "white") +
+  theme_minimal()
+
+
+ggplot(long_data, aes(x = `2sv_percent`, fill = player_type)) + 
+  geom_histogram(bins = 150, color = "white") +
+  theme_minimal()
+```
+```{r}
+##t test##
+
+t.test(`1sv_w_percent` ~ player_type, data = long_data)
+
+t.test(`1sv_percent` ~ player_type, data = long_data)
+```
+```{r}
+install.packages("effsize")
+library(effsize)
+
+serve_winning_effect <- cohen.d(`1sv_w_percent` ~ player_type, data = long_data)
+
+serve_percent_effect <- cohen.d(`1sv_percent` ~ player_type, data = long_data)
+
+
+
+```
+
